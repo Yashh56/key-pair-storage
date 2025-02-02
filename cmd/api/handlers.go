@@ -2,7 +2,6 @@ package api
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	"github.com/Yashh56/keyValueStore/cmd/internal/store"
@@ -21,8 +20,6 @@ func HandleSet(kv *store.KeyValueStore) http.HandlerFunc {
 			http.Error(w, "Invalid request Body", http.StatusBadRequest)
 			return
 		}
-
-		fmt.Println(req.Value)
 
 		kv.SetKeyValue(req.Key, req.Value)
 		w.WriteHeader(http.StatusOK)
