@@ -1,14 +1,14 @@
-package main
+package api
 
 import (
 	"encoding/json"
 	"fmt"
 	"net/http"
 
-	"github.com/Yashh56/key-pair-storage/keyvaluestore"
+	"github.com/Yashh56/keyValueStore/cmd/internal/store"
 )
 
-func HandleSet(kv *keyvaluestore.KeyValueStore) http.HandlerFunc {
+func HandleSet(kv *store.KeyValueStore) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req struct {
 			Key   string `json:"key"`
@@ -22,12 +22,14 @@ func HandleSet(kv *keyvaluestore.KeyValueStore) http.HandlerFunc {
 			return
 		}
 
-		kv.Set(req.Key, req.Value)
+		fmt.Println(req.Value)
+
+		kv.SetKeyValue(req.Key, req.Value)
 		w.WriteHeader(http.StatusOK)
 	}
 }
 
-func HandleGet(kv *keyvaluestore.KeyValueStore) http.HandlerFunc {
+func HandleGet(kv *store.KeyValueStore) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		key := r.URL.Query().Get("key")
 
@@ -36,7 +38,7 @@ func HandleGet(kv *keyvaluestore.KeyValueStore) http.HandlerFunc {
 			return
 		}
 
-		val, ok := kv.Get(key)
+		val, ok := kv.GetKeyValue(key)
 		if !ok {
 			http.Error(w, "Key not found", http.StatusNotFound)
 			return
@@ -48,21 +50,5 @@ func HandleGet(kv *keyvaluestore.KeyValueStore) http.HandlerFunc {
 
 		w.Header().Set("Content-type", "application/json")
 		json.NewEncoder(w).Encode(resp)
-	}
-}
-
-func main() {
-	kv := keyvaluestore.NewKeyValueStore()
-
-	http.HandleFunc("/set", HandleSet(kv))
-	http.HandleFunc("/get", HandleGet(kv))
-	var port = 8080
-	addr := fmt.Sprintf(":%d", port)
-
-	fmt.Printf("Starting Server on localhost%s\n", addr)
-	err := http.ListenAndServe(addr, nil)
-
-	if err != nil {
-		fmt.Printf("Error: %s\n", err)
 	}
 }
