@@ -6,8 +6,8 @@ import (
 	"os"
 	"strings"
 
-	"github.com/Yashh56/keyValueStore/cmd/api"
-	"github.com/Yashh56/keyValueStore/cmd/internal/store"
+	"github.com/Yashh56/keyValueStore/api"
+	"github.com/Yashh56/keyValueStore/internal/store"
 )
 
 func Cmd() {

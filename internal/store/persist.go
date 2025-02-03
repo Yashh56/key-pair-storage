@@ -1,7 +1,6 @@
 package store
 
 import (
-	"fmt"
 	"log"
 
 	"github.com/dgraph-io/badger/v4"
@@ -77,6 +76,5 @@ func DeleteFromDisk(key string) bool {
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println("Key Value has been deleted!")
 	return true
 }

@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/Yashh56/keyValueStore/cmd/internal/store"
+	"github.com/Yashh56/keyValueStore/internal/store"
 )
 
 func HandleSet(kv *store.KeyValueStore) http.HandlerFunc {

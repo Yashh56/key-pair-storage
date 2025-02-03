@@ -18,8 +18,8 @@ func NewKeyValueStore() *KeyValueStore {
 func (kv *KeyValueStore) SetKeyValue(key, value string) {
 	kv.mu.Lock()
 	defer kv.mu.Unlock()
-	SaveToDisk(key, value)
 	kv.keyValue[key] = value
+	SaveToDisk(key, value)
 }
 
 func (kv *KeyValueStore) GetKeyValue(key string) (string, bool) {

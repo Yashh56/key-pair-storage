@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/Yashh56/keyValueStore/cmd/internal/store"
+	"github.com/Yashh56/keyValueStore/internal/store"
 )
 
 func Server() {
