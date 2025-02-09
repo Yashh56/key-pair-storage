@@ -12,6 +12,7 @@ func HandleSet(kv *store.KeyValueStore) http.HandlerFunc {
 		var req struct {
 			Key   string `json:"key"`
 			Value string `json:"value"`
+			TTL   int    `json:'ttl'`
 		}
 
 		err := json.NewDecoder(r.Body).Decode(&req)
@@ -21,7 +22,7 @@ func HandleSet(kv *store.KeyValueStore) http.HandlerFunc {
 			return
 		}
 
-		kv.SetKeyValue(req.Key, req.Value)
+		kv.SetKeyValue(req.Key, req.Value, req.TTL)
 		w.WriteHeader(http.StatusOK)
 	}
 }

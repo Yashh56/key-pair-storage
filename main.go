@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/Yashh56/keyValueStore/api"
@@ -39,8 +40,20 @@ func Cmd() {
 				fmt.Println("Usage: store <key> <value>")
 				continue
 			}
-			key, value := args[1], strings.Join(args[2:], " ")
-			store.SetKeyValue(key, value)
+			key, value := args[1], args[2]
+
+			if len(args) < 4 {
+				fmt.Println("Error: TTL value is missing")
+				return
+			}
+
+			ttl, err := strconv.Atoi(args[3])
+			if err != nil {
+				fmt.Println("Error: Invalid TTL value, must be an integer")
+				return
+			}
+
+			store.SetKeyValue(key, value, ttl)
 			fmt.Printf("Stored: %s = %s\n", key, value)
 
 		case "get":
