@@ -2,11 +2,12 @@ package store
 
 import (
 	"log"
+	"time"
 
 	"github.com/dgraph-io/badger/v4"
 )
 
-func SaveToDisk(key string, value string) bool {
+func SaveToDisk(key string, value string, ttlSeconds int) bool {
 	opts := badger.DefaultOptions("badgerdb").WithLoggingLevel(badger.ERROR)
 	db, err := badger.Open(opts)
 
@@ -17,7 +18,11 @@ func SaveToDisk(key string, value string) bool {
 	defer db.Close()
 
 	err = db.Update(func(txn *badger.Txn) error {
-		return txn.Set([]byte(key), []byte(value))
+		e := badger.NewEntry([]byte(key), []byte(value))
+		if ttlSeconds > 0 {
+			e.WithTTL(time.Duration(ttlSeconds) * time.Second)
+		}
+		return txn.SetEntry(e)
 	})
 
 	if err != nil {

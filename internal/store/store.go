@@ -1,61 +1,51 @@
 package store
 
-import (
-	"sync"
-)
-
 type KeyValueStore struct {
-	keyValue   map[string]string
-	mu         sync.RWMutex
-	ttlManager *TTLManager
+	lru *LRUCache
 }
 
-func NewKeyValueStore() *KeyValueStore {
-
-	store := &KeyValueStore{
-		keyValue: make(map[string]string),
-	}
-	store.ttlManager = NewTTLManager(store)
-
-	return store
+func NewKeyValueStore(maxEntries int) *KeyValueStore {
+	cache := NewLRUCache(maxEntries)
+	go cache.startTTLWorker()
+	return &KeyValueStore{lru: cache}
 }
 
 func (kv *KeyValueStore) SetKeyValue(key, value string, ttlSeconds int) {
-	kv.mu.Lock()
-	defer kv.mu.Unlock()
-	kv.keyValue[key] = value
-	SaveToDisk(key, value)
-	kv.ttlManager.SetTTL(key, ttlSeconds)
+	kv.lru.Set(key, value, ttlSeconds)
+	SaveToDisk(key, value, ttlSeconds)
 }
 
 func (kv *KeyValueStore) GetKeyValue(key string) (string, bool) {
-	kv.mu.RLock()
-	defer kv.mu.RUnlock()
-
-	if kv.ttlManager.IsExpired(key) {
-		kv.mu.RUnlock()
-		kv.DeleteKeyValue(key)
-		kv.mu.RLock()
-		return "", false
-	}
-
-	val, ok := LoadFromDisk(key)
-
-	return val, ok
-
+	return kv.lru.Get(key)
 }
 
 func (kv *KeyValueStore) DeleteKeyValue(key string) bool {
+	del1 := kv.lru.Delete(key)
+	del2 := DeleteFromDisk(key)
+	return del1 == del2
+}
 
-	kv.mu.Lock()
-	defer kv.mu.Unlock()
+func (kv *KeyValueStore) SetBatch(items map[string]string, ttlSeconds int) {
+	for key, value := range items {
+		kv.lru.Set(key, value, ttlSeconds)
+		SaveToDisk(key, value, ttlSeconds)
+	}
+}
 
-	_, ok := kv.keyValue[key]
+func (kv *KeyValueStore) GetBatch(keys []string) map[string]string {
+	results := make(map[string]string)
 
-	if ok {
-		delete(kv.keyValue, key)
+	for _, key := range keys {
+		if val, found := kv.lru.Get(key); found {
+			results[key] = val
+		}
+	}
+	return results
+}
+
+func (kv *KeyValueStore) DeleteBatch(keys []string) {
+	for _, key := range keys {
+		kv.lru.Delete(key)
 		DeleteFromDisk(key)
 	}
-
-	return ok
 }

@@ -12,7 +12,7 @@ import (
 )
 
 func Cmd() {
-	store := store.NewKeyValueStore()
+	store := store.NewKeyValueStore(100)
 	scanner := bufio.NewScanner(os.Stdin)
 
 	fmt.Println("Simple Key-Value Store CLI")

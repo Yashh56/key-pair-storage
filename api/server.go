@@ -8,10 +8,12 @@ import (
 )
 
 func Server() {
-	kv := store.NewKeyValueStore()
+	kv := store.NewKeyValueStore(100)
 
 	http.HandleFunc("/set", HandleSet(kv))
 	http.HandleFunc("/get", HandleGet(kv))
+	http.HandleFunc("/batchSet", HandleBatchSet(kv))
+	http.HandleFunc("/batchGet", HandleBatchGet(kv))
 	var port = 8080
 	address := fmt.Sprintf(":%d", port)
 	fmt.Printf("Starting server on localhost%s\n", address)
