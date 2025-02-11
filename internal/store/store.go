@@ -1,18 +1,28 @@
 package store
 
+import (
+	"github.com/Yashh56/keyValueStore/internal/cache"
+	"github.com/Yashh56/keyValueStore/internal/persist"
+)
+
 type KeyValueStore struct {
-	lru *LRUCache
+	lru *cache.LRUCache
 }
 
 func NewKeyValueStore(maxEntries int) *KeyValueStore {
-	cache := NewLRUCache(maxEntries)
-	go cache.startTTLWorker()
+	cache := cache.NewLRUCache(maxEntries)
+	go cache.StartTTLWorker()
 	return &KeyValueStore{lru: cache}
 }
 
 func (kv *KeyValueStore) SetKeyValue(key, value string, ttlSeconds int) {
-	kv.lru.Set(key, value, ttlSeconds)
-	SaveToDisk(key, value, ttlSeconds)
+	if ttlSeconds > 0 {
+		kv.lru.Set(key, value, ttlSeconds)
+		persist.SaveToDisk(key, value, ttlSeconds)
+	} else {
+		kv.lru.Set(key, value, 0)
+		persist.SaveToDisk(key, value, 0)
+	}
 }
 
 func (kv *KeyValueStore) GetKeyValue(key string) (string, bool) {
@@ -21,14 +31,14 @@ func (kv *KeyValueStore) GetKeyValue(key string) (string, bool) {
 
 func (kv *KeyValueStore) DeleteKeyValue(key string) bool {
 	del1 := kv.lru.Delete(key)
-	del2 := DeleteFromDisk(key)
+	del2 := persist.DeleteFromDisk(key)
 	return del1 == del2
 }
 
 func (kv *KeyValueStore) SetBatch(items map[string]string, ttlSeconds int) {
 	for key, value := range items {
 		kv.lru.Set(key, value, ttlSeconds)
-		SaveToDisk(key, value, ttlSeconds)
+		persist.SaveToDisk(key, value, ttlSeconds)
 	}
 }
 
@@ -46,6 +56,6 @@ func (kv *KeyValueStore) GetBatch(keys []string) map[string]string {
 func (kv *KeyValueStore) DeleteBatch(keys []string) {
 	for _, key := range keys {
 		kv.lru.Delete(key)
-		DeleteFromDisk(key)
+		persist.DeleteFromDisk(key)
 	}
 }

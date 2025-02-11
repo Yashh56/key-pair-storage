@@ -1,4 +1,4 @@
-package store
+package cache
 
 import (
 	"container/list"
@@ -80,7 +80,7 @@ func (c *LRUCache) Delete(key string) bool {
 	return false
 }
 
-func (c *LRUCache) startTTLWorker() {
+func (c *LRUCache) StartTTLWorker() {
 	ticker := time.NewTicker(1 * time.Second)
 	defer ticker.Stop()
 

@@ -12,7 +12,7 @@ func HandleSet(kv *store.KeyValueStore) http.HandlerFunc {
 		var req struct {
 			Key   string `json:"key"`
 			Value string `json:"value"`
-			TTL   int    `json:'ttl'`
+			TTL   *int   `json:'ttl'`
 		}
 
 		err := json.NewDecoder(r.Body).Decode(&req)
@@ -22,7 +22,12 @@ func HandleSet(kv *store.KeyValueStore) http.HandlerFunc {
 			return
 		}
 
-		kv.SetKeyValue(req.Key, req.Value, req.TTL)
+		ttl := 0
+		if req.TTL != nil {
+			ttl = *req.TTL
+		}
+
+		kv.SetKeyValue(req.Key, req.Value, ttl)
 		w.WriteHeader(http.StatusOK)
 	}
 }
@@ -51,7 +56,23 @@ func HandleGet(kv *store.KeyValueStore) http.HandlerFunc {
 	}
 }
 
-// HandleBatchSet processes batch SET requests
+func HandleDelete(kv *store.KeyValueStore) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		key := r.URL.Query().Get("key")
+
+		if key == "" {
+			http.Error(w, "Key Parameter is missing", http.StatusBadRequest)
+			return
+		}
+		ok := kv.DeleteKeyValue(key)
+		if !ok {
+			http.Error(w, "Key not found", http.StatusNotFound)
+			return
+		}
+		w.WriteHeader(http.StatusOK)
+	}
+}
+
 func HandleBatchSet(kv *store.KeyValueStore) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req struct {
@@ -70,7 +91,6 @@ func HandleBatchSet(kv *store.KeyValueStore) http.HandlerFunc {
 	}
 }
 
-// HandleBatchGet processes batch GET requests
 func HandleBatchGet(kv *store.KeyValueStore) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req struct {

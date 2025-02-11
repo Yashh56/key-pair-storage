@@ -1,17 +1,19 @@
-package store
+package ttl
 
 import (
 	"sync"
 	"time"
+
+	"github.com/Yashh56/keyValueStore/internal/store"
 )
 
 type TTLManager struct {
 	ttlMap map[string]time.Time
 	mu     sync.Mutex
-	store  *KeyValueStore
+	store  *store.KeyValueStore
 }
 
-func NewTTLManager(store *KeyValueStore) *TTLManager {
+func NewTTLManager(store *store.KeyValueStore) *TTLManager {
 	ttlManager := &TTLManager{
 		ttlMap: make(map[string]time.Time),
 		store:  store,
